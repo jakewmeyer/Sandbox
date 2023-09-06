@@ -10,6 +10,7 @@ impl Default for Config {
         Config {
             host: String::from("0.0.0.0"),
             port: String::from("5678"),
+            request_timeout: 30,
             database_url: String::new(),
             stripe_secret_key: String::new(),
             stripe_webhook_secret: String::new(),
@@ -30,6 +31,9 @@ pub struct Config {
 
     // The port the server will bind to
     pub port: String,
+
+    // Request timeout in seconds
+    pub request_timeout: u64,
 
     // Database connection string
     pub database_url: String,

@@ -8,9 +8,11 @@ use ::stripe::RequestStrategy::ExponentialBackoff;
 use anyhow::Result;
 use axum::{middleware, Router};
 use sea_orm::{Database, DatabaseConnection};
+use tower_http::timeout::TimeoutLayer;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::signal;
 use tokio::sync::Mutex;
 use tower_default_headers::DefaultHeadersLayer;
@@ -87,7 +89,7 @@ pub async fn serve(config: Config) -> Result<()> {
     auth0_client.load_jwk().await?;
 
     let state = ApiContext {
-        config,
+        config: config.clone(),
         db,
         rate_limit: Arc::new(Mutex::new(HashMap::new())),
         stripe_client,
@@ -99,6 +101,7 @@ pub async fn serve(config: Config) -> Result<()> {
         .merge(accounts::routes())
         .merge(users::routes())
         .merge(stripe::routes())
+        .layer(TimeoutLayer::new(Duration::from_secs(config.request_timeout)))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
         .layer(middleware::from_fn_with_state(
