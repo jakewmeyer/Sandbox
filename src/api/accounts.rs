@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     extract::{rejection::PathRejection, Path, State},
     http::StatusCode,
@@ -25,7 +27,7 @@ pub struct UpdateAccount {
     pub provider_id: Option<String>,
 }
 
-pub fn routes() -> Router<ApiContext> {
+pub fn routes() -> Router<Arc<ApiContext>> {
     Router::new()
         .route("/v1/accounts", get(list_accounts_handler))
         .route("/v1/accounts/:id", get(get_account_by_id_handler))
@@ -35,7 +37,7 @@ pub fn routes() -> Router<ApiContext> {
 }
 
 pub async fn list_accounts(
-    ctx: &ApiContext,
+    ctx: &Arc<ApiContext>,
     page: &Pagination,
 ) -> Result<Vec<accounts::Model>, Error> {
     let accounts = Accounts::find()
@@ -47,14 +49,14 @@ pub async fn list_accounts(
     Ok(accounts)
 }
 
-pub async fn get_account_by_id(ctx: &ApiContext, id: Uuid) -> Result<accounts::Model, Error> {
+pub async fn get_account_by_id(ctx: &Arc<ApiContext>, id: Uuid) -> Result<accounts::Model, Error> {
     Accounts::find_by_id(id)
         .one(&ctx.db)
         .await?
         .ok_or(Error::NotFound)
 }
 
-pub async fn create_account(ctx: &ApiContext) -> Result<accounts::Model, Error> {
+pub async fn create_account(ctx: &Arc<ApiContext>) -> Result<accounts::Model, Error> {
     let account = accounts::ActiveModel {
         ..Default::default()
     };
@@ -62,7 +64,7 @@ pub async fn create_account(ctx: &ApiContext) -> Result<accounts::Model, Error> 
     Ok(account)
 }
 
-pub async fn delete_account(ctx: &ApiContext, id: Uuid) -> Result<accounts::Model, Error> {
+pub async fn delete_account(ctx: &Arc<ApiContext>, id: Uuid) -> Result<accounts::Model, Error> {
     let account = Accounts::find_by_id(id).one(&ctx.db).await?;
     let account = account.ok_or(Error::NotFound)?;
     let mut account: accounts::ActiveModel = account.into();
@@ -72,7 +74,7 @@ pub async fn delete_account(ctx: &ApiContext, id: Uuid) -> Result<accounts::Mode
 }
 
 pub async fn list_account_users(
-    ctx: &ApiContext,
+    ctx: &Arc<ApiContext>,
     id: Uuid,
     page: &Pagination,
 ) -> Result<Vec<users::Model>, Error> {
@@ -90,7 +92,7 @@ pub async fn list_account_users(
 
 pub async fn list_accounts_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     page: Pagination,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("list:account")?;
@@ -100,7 +102,7 @@ pub async fn list_accounts_handler(
 
 pub async fn create_account_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("create:account")?;
     let created = create_account(&ctx).await?;
@@ -109,7 +111,7 @@ pub async fn create_account_handler(
 
 pub async fn get_account_by_id_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     account_id: Result<Path<Uuid>, PathRejection>,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("retrieve:account")?;
@@ -120,7 +122,7 @@ pub async fn get_account_by_id_handler(
 
 pub async fn delete_account_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     account_id: Result<Path<Uuid>, PathRejection>,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("delete:account")?;
@@ -131,7 +133,7 @@ pub async fn delete_account_handler(
 
 pub async fn list_account_users_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     account_id: Result<Path<Uuid>, PathRejection>,
     page: Pagination,
 ) -> Result<impl IntoResponse, Error> {

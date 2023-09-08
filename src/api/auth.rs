@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     async_trait,
     extract::{FromRef, FromRequestParts},
@@ -21,7 +23,7 @@ pub struct AuthUser {
 
 impl AuthUser {
     async fn from_authorization(
-        ctx: &ApiContext,
+        ctx: &Arc<ApiContext>,
         auth_header: &HeaderValue,
     ) -> Result<Self, Error> {
         let token = auth_header
@@ -71,12 +73,12 @@ impl AuthUser {
 #[async_trait]
 impl<S> FromRequestParts<S> for AuthUser
 where
-    ApiContext: FromRef<S>,
+    Arc<ApiContext>: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = Error;
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let ctx = ApiContext::from_ref(state);
+        let ctx = Arc::from_ref(state);
         if let Some(auth_header) = parts.headers.get(header::AUTHORIZATION) {
             Ok(Self::from_authorization(&ctx, auth_header).await?)
         } else {

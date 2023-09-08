@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     extract::{
         rejection::{JsonRejection, PathRejection},
@@ -27,7 +29,7 @@ pub struct UpdateUser {
     pub provider_id: Option<String>,
 }
 
-pub fn routes() -> Router<ApiContext> {
+pub fn routes() -> Router<Arc<ApiContext>> {
     Router::new()
         .route("/v1/users", get(list_users_handler))
         .route("/v1/users/:id", get(get_user_by_id_handler))
@@ -37,7 +39,7 @@ pub fn routes() -> Router<ApiContext> {
         .route("/v1/users/:id/accounts", get(list_user_accounts_handler))
 }
 
-pub async fn list_users(ctx: &ApiContext, page: &Pagination) -> Result<Vec<users::Model>, Error> {
+pub async fn list_users(ctx: &Arc<ApiContext>, page: &Pagination) -> Result<Vec<users::Model>, Error> {
     let users = Users::find()
         .filter(users::Column::RowId.gte(page.after))
         .order_by_asc(users::Column::RowId)
@@ -47,7 +49,7 @@ pub async fn list_users(ctx: &ApiContext, page: &Pagination) -> Result<Vec<users
     Ok(users)
 }
 
-pub async fn create_user(ctx: &ApiContext, user: CreateUser) -> Result<users::Model, Error> {
+pub async fn create_user(ctx: &Arc<ApiContext>, user: CreateUser) -> Result<users::Model, Error> {
     let user = users::ActiveModel {
         provider_id: Set(user.provider_id),
         ..Default::default()
@@ -56,7 +58,7 @@ pub async fn create_user(ctx: &ApiContext, user: CreateUser) -> Result<users::Mo
     Ok(user)
 }
 
-pub async fn get_user_by_id(ctx: &ApiContext, id: Uuid) -> Result<users::Model, Error> {
+pub async fn get_user_by_id(ctx: &Arc<ApiContext>, id: Uuid) -> Result<users::Model, Error> {
     Users::find_by_id(id)
         .one(&ctx.db)
         .await?
@@ -75,7 +77,7 @@ pub async fn get_user_by_provider_id(
 }
 
 pub async fn update_user(
-    ctx: &ApiContext,
+    ctx: &Arc<ApiContext>,
     id: Uuid,
     update: UpdateUser,
 ) -> Result<users::Model, Error> {
@@ -89,7 +91,7 @@ pub async fn update_user(
     Ok(user)
 }
 
-pub async fn delete_user(ctx: &ApiContext, id: Uuid) -> Result<users::Model, Error> {
+pub async fn delete_user(ctx: &Arc<ApiContext>, id: Uuid) -> Result<users::Model, Error> {
     let user = Users::find_by_id(id).one(&ctx.db).await?;
     let user = user.ok_or(Error::NotFound)?;
     let mut user: users::ActiveModel = user.into();
@@ -117,7 +119,7 @@ pub async fn list_user_accounts(
 
 async fn list_users_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     page: Pagination,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("list:user")?;
@@ -127,7 +129,7 @@ async fn list_users_handler(
 
 async fn get_user_by_id_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     user_id: Result<Path<Uuid>, PathRejection>,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("retrieve:user")?;
@@ -138,7 +140,7 @@ async fn get_user_by_id_handler(
 
 async fn create_user_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     body: Result<Json<CreateUser>, JsonRejection>,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("create:user")?;
@@ -149,7 +151,7 @@ async fn create_user_handler(
 
 async fn update_user_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     user_id: Result<Path<Uuid>, PathRejection>,
     body: Result<Json<UpdateUser>, JsonRejection>,
 ) -> Result<impl IntoResponse, Error> {
@@ -162,7 +164,7 @@ async fn update_user_handler(
 
 async fn delete_user_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     user_id: Result<Path<Uuid>, PathRejection>,
 ) -> Result<impl IntoResponse, Error> {
     user.has_permission("delete:user")?;
@@ -173,7 +175,7 @@ async fn delete_user_handler(
 
 async fn list_user_accounts_handler(
     user: AuthUser,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     user_id: Result<Path<Uuid>, PathRejection>,
     page: Pagination,
 ) -> Result<impl IntoResponse, Error> {

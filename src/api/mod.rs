@@ -7,20 +7,19 @@ use ::stripe::Client as StripeClient;
 use ::stripe::RequestStrategy::ExponentialBackoff;
 use anyhow::Result;
 use axum::{middleware, Router};
-use sea_orm::{Database, DatabaseConnection};
-use tower_http::timeout::TimeoutLayer;
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Duration;
-use tokio::signal;
+use tokio::{signal, select};
 use tokio::sync::Mutex;
 use tower_default_headers::DefaultHeadersLayer;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
+use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{info, error};
 
 use self::ratelimit::TokenBucket;
 
@@ -32,17 +31,16 @@ mod ratelimit;
 mod stripe;
 mod users;
 
-#[derive(Clone)]
 pub struct ApiContext {
     db: DatabaseConnection,
     config: Config,
-    rate_limit: Arc<Mutex<HashMap<String, TokenBucket>>>,
+    rate_limit: Mutex<HashMap<String, TokenBucket>>,
     stripe_client: StripeClient,
     auth0_client: Client,
 }
 
 /// Creates a signal handler for graceful shutdown.
-async fn shutdown_signal() {
+async fn shutdown_signal(ctx: Arc<ApiContext>) {
     // Handle SIGINT
     let ctrl_c = async {
         signal::ctrl_c()
@@ -62,13 +60,17 @@ async fn shutdown_signal() {
     #[cfg(not(unix))]
     let terminate = std::future::pending::<()>();
 
-    tokio::select! {
+    select! {
         _ = ctrl_c => {},
         _ = terminate => {},
     }
 
     // Any other graceful shutdow logic goes here
     info!("Signal received, starting graceful shutdown...");
+    ctx.db.clone().close().await.unwrap_or_else(|e| {
+        error!("Failed to close database connection: {}", e);
+    });
+    info!("Graceful shutdown complete");
 }
 
 /// Create and serve an Axum server with pre-registered routes
@@ -76,7 +78,9 @@ async fn shutdown_signal() {
 pub async fn serve(config: Config) -> Result<()> {
     let addr: SocketAddr = format!("{}:{}", config.host, config.port).parse()?;
 
-    let db = Database::connect(&config.database_url).await?;
+    let mut opts = ConnectOptions::new(&config.database_url);
+    opts.connect_timeout(config.database_timeout);
+    let db = Database::connect(opts).await?;
 
     let stripe_client =
         StripeClient::new(&config.stripe_secret_key).with_strategy(ExponentialBackoff(5));
@@ -88,20 +92,20 @@ pub async fn serve(config: Config) -> Result<()> {
     );
     auth0_client.load_jwk().await?;
 
-    let state = ApiContext {
+    let state = Arc::new(ApiContext {
         config: config.clone(),
         db,
-        rate_limit: Arc::new(Mutex::new(HashMap::new())),
+        rate_limit: Mutex::new(HashMap::new()),
         stripe_client,
         auth0_client,
-    };
+    });
 
     let app = Router::new()
         .merge(public::routes())
         .merge(accounts::routes())
         .merge(users::routes())
         .merge(stripe::routes())
-        .layer(TimeoutLayer::new(Duration::from_secs(config.request_timeout)))
+        .layer(TimeoutLayer::new(config.request_timeout))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
         .layer(middleware::from_fn_with_state(
@@ -112,12 +116,13 @@ pub async fn serve(config: Config) -> Result<()> {
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(DefaultHeadersLayer::new(owasp_headers::headers()))
-        .with_state(state);
+        .with_state(state.clone());
 
     info!("Listening on {}", addr);
     axum::Server::try_bind(&addr)?
+        .http1_header_read_timeout(config.request_timeout)
         .serve(app.into_make_service())
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(shutdown_signal(state.clone()))
         .await?;
     Ok(())
 }

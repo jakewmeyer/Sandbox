@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{time::Instant, sync::Arc};
 
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 
@@ -48,7 +48,7 @@ impl TokenBucket {
 }
 
 pub async fn limiter<B>(
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
     req: Request<B>,
     next: Next<B>,
 ) -> Result<impl IntoResponse, Error> {
