@@ -22,7 +22,7 @@ async fn stripe_webhook_handler(
         .and_then(|v| v.to_str().ok())
         .unwrap_or("");
     let stripe_webhook_secret = &ctx.config.stripe_webhook_secret;
-    let event = Webhook::construct_event(&body, stripe_signature, &stripe_webhook_secret)?;
+    let event = Webhook::construct_event(&body, stripe_signature, stripe_webhook_secret)?;
     let _event = Arc::new(event);
     Ok(StatusCode::OK)
 }

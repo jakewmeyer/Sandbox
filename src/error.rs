@@ -25,7 +25,7 @@ pub enum Error {
     #[error("Too Many Requests")]
     TooManyRequests,
 
-    #[error("Auth0 error")]
+    #[error("Auth0 Error")]
     Auth0,
 
     #[error("Stripe webhook error")]
