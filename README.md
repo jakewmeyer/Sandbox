@@ -6,7 +6,6 @@ A repo for testing different approaches to Rust web service development with a f
 
 * Keyset pagination
 * Token bucket rate limiter
-* Scratch Docker image with 
 * Auth0 JWK caching
 * Auth0 JWT validation
 * Graceful shutdown on SIGINT and SIGTERM
