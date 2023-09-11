@@ -41,8 +41,8 @@ pub async fn list_accounts(
     page: &Pagination,
 ) -> Result<Vec<accounts::Model>, Error> {
     let accounts = Accounts::find()
-        .filter(accounts::Column::RowId.gte(page.after))
-        .order_by_asc(accounts::Column::RowId)
+        .filter(accounts::Column::Id.gte(page.after))
+        .order_by_asc(accounts::Column::Id)
         .limit(page.limit)
         .all(&ctx.db)
         .await?;
@@ -58,6 +58,7 @@ pub async fn get_account_by_id(ctx: &Arc<ApiContext>, id: Uuid) -> Result<accoun
 
 pub async fn create_account(ctx: &Arc<ApiContext>) -> Result<accounts::Model, Error> {
     let account = accounts::ActiveModel {
+        id: Set(Uuid::now_v7()),
         ..Default::default()
     };
     let account = account.insert(&ctx.db).await?;
@@ -81,8 +82,8 @@ pub async fn list_account_users(
     let result = Accounts::find()
         .find_with_related(Users)
         .filter(accounts::Column::Id.eq(id))
-        .filter(users::Column::RowId.gte(page.after))
-        .order_by_asc(users::Column::RowId)
+        .filter(users::Column::Id.gte(page.after))
+        .order_by_asc(users::Column::Id)
         .limit(page.limit)
         .all(&ctx.db)
         .await?;

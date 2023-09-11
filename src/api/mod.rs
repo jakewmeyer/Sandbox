@@ -11,15 +11,15 @@ use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::{signal, select};
 use tokio::sync::Mutex;
+use tokio::{select, signal};
 use tower_default_headers::DefaultHeadersLayer;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
-use tracing::{info, error};
+use tracing::{error, info};
 
 use self::ratelimit::TokenBucket;
 
@@ -79,7 +79,9 @@ pub async fn serve(config: Config) -> Result<()> {
     let addr: SocketAddr = format!("{}:{}", config.host, config.port).parse()?;
 
     let mut opts = ConnectOptions::new(&config.database_url);
-    opts.connect_timeout(config.database_timeout);
+    opts.connect_timeout(config.database_timeout)
+        .sqlx_logging(false);
+
     let db = Database::connect(opts).await?;
 
     let stripe_client =

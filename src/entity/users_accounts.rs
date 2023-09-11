@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 #[sea_orm(table_name = "users_accounts")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub row_id: i32,
     pub user_id: Uuid,
     pub account_id: Uuid,
     pub created: DateTimeWithTimeZone,

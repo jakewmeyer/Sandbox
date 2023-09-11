@@ -45,6 +45,7 @@ impl AuthUser {
                 ctx,
                 CreateUser {
                     provider_id: user_id.clone(),
+                    stripe_customer_id: String::from("placeholder"),
                 },
             )
             .await

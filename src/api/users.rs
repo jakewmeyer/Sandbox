@@ -22,11 +22,13 @@ use super::{auth::AuthUser, pagination::Pagination, ApiContext};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUser {
     pub provider_id: String,
+    pub stripe_customer_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateUser {
     pub provider_id: Option<String>,
+    pub stripe_customer_id: Option<String>,
 }
 
 pub fn routes() -> Router<Arc<ApiContext>> {
@@ -39,10 +41,13 @@ pub fn routes() -> Router<Arc<ApiContext>> {
         .route("/v1/users/:id/accounts", get(list_user_accounts_handler))
 }
 
-pub async fn list_users(ctx: &Arc<ApiContext>, page: &Pagination) -> Result<Vec<users::Model>, Error> {
+pub async fn list_users(
+    ctx: &Arc<ApiContext>,
+    page: &Pagination,
+) -> Result<Vec<users::Model>, Error> {
     let users = Users::find()
-        .filter(users::Column::RowId.gte(page.after))
-        .order_by_asc(users::Column::RowId)
+        .filter(users::Column::Id.gte(page.after))
+        .order_by_asc(users::Column::Id)
         .limit(page.limit)
         .all(&ctx.db)
         .await?;
@@ -51,7 +56,9 @@ pub async fn list_users(ctx: &Arc<ApiContext>, page: &Pagination) -> Result<Vec<
 
 pub async fn create_user(ctx: &Arc<ApiContext>, user: CreateUser) -> Result<users::Model, Error> {
     let user = users::ActiveModel {
+        id: Set(Uuid::now_v7()),
         provider_id: Set(user.provider_id),
+        stripe_customer_id: Set(user.stripe_customer_id),
         ..Default::default()
     };
     let user = user.insert(&ctx.db).await?;
@@ -87,6 +94,9 @@ pub async fn update_user(
     if let Some(provider_id) = update.provider_id {
         user.provider_id = Set(provider_id);
     }
+    if let Some(stripe_customer_id) = update.stripe_customer_id {
+        user.stripe_customer_id = Set(stripe_customer_id);
+    }
     let user = user.update(&ctx.db).await?;
     Ok(user)
 }
@@ -108,8 +118,8 @@ pub async fn list_user_accounts(
     let result = Users::find()
         .find_with_related(Accounts)
         .filter(users::Column::Id.eq(id))
-        .filter(accounts::Column::RowId.gte(page.after))
-        .order_by_asc(accounts::Column::RowId)
+        .filter(accounts::Column::Id.gte(page.after))
+        .order_by_asc(accounts::Column::Id)
         .limit(page.limit)
         .all(&ctx.db)
         .await?;

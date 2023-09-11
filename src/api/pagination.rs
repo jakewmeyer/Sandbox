@@ -6,13 +6,14 @@ use axum::{
     http::request::Parts,
     RequestPartsExt,
 };
+use uuid::Uuid;
 
 use crate::error::Error;
 
 #[derive(Debug, Clone)]
 pub struct Pagination {
     pub limit: u64,
-    pub after: u64,
+    pub after: Uuid,
 }
 
 #[async_trait]
@@ -30,8 +31,8 @@ where
             .min(100);
         let after = params
             .get("after")
-            .and_then(|s| s.parse::<u64>().ok())
-            .unwrap_or(0);
+            .and_then(|s| s.parse::<Uuid>().ok())
+            .unwrap_or(Uuid::nil());
         Ok(Pagination { limit, after })
     }
 }

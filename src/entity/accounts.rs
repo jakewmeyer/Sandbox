@@ -14,7 +14,6 @@ pub enum AccountStatus {
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "accounts")]
 pub struct Model {
-    pub row_id: i32,
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     #[sea_orm(column_type = "Text")]

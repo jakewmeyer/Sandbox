@@ -3,7 +3,6 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "subscriptions")]
 pub struct Model {
-    pub row_id: i32,
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub account_id: Uuid,

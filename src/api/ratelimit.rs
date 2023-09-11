@@ -1,4 +1,4 @@
-use std::{time::Instant, sync::Arc};
+use std::{sync::Arc, time::Instant};
 
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 
