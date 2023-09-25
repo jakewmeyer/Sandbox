@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request]
 
 env:
-  IMAGE_NAME: sandbox-api
+  IMAGE_NAME: sandbox
   CARGO_TERM_COLOR: always
 
 jobs:
