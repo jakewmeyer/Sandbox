@@ -57,8 +57,7 @@ pub async fn limiter<B>(
         .get("Fly-Client-IP")
         .and_then(|v| v.to_str().ok())
         .unwrap_or("127.0.0.1");
-    let rate_limit = &mut ctx.rate_limit.lock().await;
-    let bucket = rate_limit.entry(ip.to_string()).or_insert_with(|| {
+    let mut bucket = ctx.rate_limit.entry(ip.to_string()).or_insert_with(|| {
         TokenBucket::new(
             ctx.config.rate_limit_capacity,
             ctx.config.rate_limit_fill_rate,

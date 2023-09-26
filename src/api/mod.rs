@@ -3,15 +3,14 @@
 
 use crate::auth0::Client;
 use crate::config::Config;
+use dashmap::DashMap;
 use ::stripe::Client as StripeClient;
 use ::stripe::RequestStrategy::ExponentialBackoff;
 use anyhow::Result;
 use axum::{middleware, Router};
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
-use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use tokio::{select, signal};
 use tower_default_headers::DefaultHeadersLayer;
 use tower_http::compression::CompressionLayer;
@@ -34,7 +33,7 @@ mod users;
 pub struct ApiContext {
     db: DatabaseConnection,
     config: Config,
-    rate_limit: Mutex<HashMap<String, TokenBucket>>,
+    rate_limit: DashMap<String, TokenBucket>,
     stripe_client: StripeClient,
     auth0_client: Client,
 }
@@ -97,7 +96,7 @@ pub async fn serve(config: Config) -> Result<()> {
     let state = Arc::new(ApiContext {
         config: config.clone(),
         db,
-        rate_limit: Mutex::new(HashMap::new()),
+        rate_limit: DashMap::new(),
         stripe_client,
         auth0_client,
     });
