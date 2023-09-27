@@ -56,7 +56,6 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
-        context: .
         push: true
         tags: ghcr.io/jakewmeyer/sandbox:latest
         cache-from: type=registry,ref=ghcr.io/jakewmeyer/sandbox:latest
