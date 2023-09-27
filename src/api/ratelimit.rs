@@ -1,10 +1,18 @@
-use std::{sync::Arc, time::Instant};
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    sync::Arc,
+    time::Instant,
+};
 
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 
 use crate::error::Error;
 
 use super::ApiContext;
+
+const TAKE_RATE: u8 = 1;
+const IP_HEADER: &str = "X-Real-IP";
+const DEFAULT_IP: IpAddr = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 
 #[derive(Debug, Clone, Copy)]
 pub struct TokenBucket {
@@ -24,10 +32,10 @@ impl TokenBucket {
         }
     }
 
-    fn take(&mut self, tokens: u8) -> bool {
+    fn take(&mut self) -> bool {
         self.update();
-        if self.available_tokens >= tokens {
-            self.available_tokens -= tokens;
+        if self.available_tokens >= TAKE_RATE {
+            self.available_tokens -= TAKE_RATE;
             true
         } else {
             false
@@ -54,16 +62,17 @@ pub async fn limiter<B>(
 ) -> Result<impl IntoResponse, Error> {
     let ip = req
         .headers()
-        .get("Fly-Client-IP")
+        .get(IP_HEADER)
         .and_then(|v| v.to_str().ok())
-        .unwrap_or("127.0.0.1");
-    let mut bucket = ctx.rate_limit.entry(ip.to_string()).or_insert_with(|| {
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(DEFAULT_IP);
+    let mut bucket = ctx.rate_limit.entry(ip).or_insert_with(|| {
         TokenBucket::new(
             ctx.config.rate_limit_capacity,
             ctx.config.rate_limit_fill_rate,
         )
     });
-    if bucket.take(1) {
+    if bucket.take() {
         Ok(next.run(req).await)
     } else {
         Err(Error::TooManyRequests)

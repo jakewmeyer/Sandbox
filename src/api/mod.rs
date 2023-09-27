@@ -3,13 +3,13 @@
 
 use crate::auth0::Client;
 use crate::config::Config;
-use dashmap::DashMap;
 use ::stripe::Client as StripeClient;
 use ::stripe::RequestStrategy::ExponentialBackoff;
 use anyhow::Result;
 use axum::{middleware, Router};
+use dashmap::DashMap;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use tokio::{select, signal};
 use tower_default_headers::DefaultHeadersLayer;
@@ -33,7 +33,7 @@ mod users;
 pub struct ApiContext {
     db: DatabaseConnection,
     config: Config,
-    rate_limit: DashMap<String, TokenBucket>,
+    rate_limit: DashMap<IpAddr, TokenBucket>,
     stripe_client: StripeClient,
     auth0_client: Client,
 }
