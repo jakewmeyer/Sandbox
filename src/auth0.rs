@@ -55,7 +55,8 @@ impl Client {
     /// Validate and decode a JWT token using the cached JWK set
     pub fn decode_token(&self, kid: String, token: &str) -> Result<TokenData<AuthClaims>, Error> {
         if let Some(j) = &self.jwk_cache.get(&kid) {
-            match j.algorithm { AlgorithmParameters::RSA(ref rsa) => {
+            match j.algorithm {
+                AlgorithmParameters::RSA(ref rsa) => {
                     let decoding_key = DecodingKey::from_rsa_components(&rsa.n, &rsa.e)
                         .map_err(|_| Error::Auth0)?;
                     let validation = Validation::new(j.common.algorithm.ok_or(Error::Auth0)?);
