@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.75"
-async-stripe = { version = "0.23.0", default-features = false, features = ["runtime-tokio-hyper-rustls", "billing", "connect", "webhook-events", "uuid", "stream", "checkout"] }
+async-stripe = { version = "0.25.1", default-features = false, features = ["runtime-tokio-hyper-rustls", "billing", "connect", "webhook-events", "uuid", "stream", "checkout"] }
 axum = { version = "0.6.20", features = ["http2", "headers"] }
 chrono = { version = "0.4.31", features = ["serde"] }
 dashmap = "5.5.3"
