@@ -1,4 +1,4 @@
-FROM rust:1.72.0-alpine AS base
+FROM rust:1.73.0-alpine AS base
 RUN apk add musl-dev musl-utils
 RUN cargo install cargo-chef
 

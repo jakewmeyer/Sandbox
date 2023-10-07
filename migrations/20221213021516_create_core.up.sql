@@ -38,10 +38,10 @@ CREATE TABLE subscriptions(
 CREATE UNIQUE INDEX subscriptions_stripe_subscription_id_idx ON subscriptions(stripe_subscription_id);
 
 INSERT INTO accounts(id, name, status) VALUES
-('00758f79-9c7f-4a50-b671-df3b433513c0', 'Jake''s Lawn Care', 1);
+('018ae25a-2c34-738b-b75e-c72e8e1f13a3', 'Jake''s Lawn Care', 1);
 
 INSERT INTO users(id, provider_id, stripe_customer_id) VALUES
-('98e8c838-8be5-46e1-af88-2dd822ee4a1b', 'auth0|640697bfd9f505ef159beb14', 'cus_GkkgWE9SjOw326');
+('018ae25a-725e-7a81-9b80-8292272c29b8', 'auth0|640697bfd9f505ef159beb14', 'cus_GkkgWE9SjOw326');
 
 INSERT INTO users_accounts(user_id, account_id) VALUES
-('98e8c838-8be5-46e1-af88-2dd822ee4a1b', '00758f79-9c7f-4a50-b671-df3b433513c0');
+('018ae25a-725e-7a81-9b80-8292272c29b8', '018ae25a-2c34-738b-b75e-c72e8e1f13a3');
