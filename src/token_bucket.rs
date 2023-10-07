@@ -27,24 +27,20 @@ impl TokenBucket {
     }
 
     pub fn take(&mut self) -> bool {
-        self.update();
-        if self.available_tokens >= self.take_rate {
-            self.available_tokens -= self.take_rate;
-            true
-        } else {
-            false
-        }
-    }
-
-    fn update(&mut self) {
         let now = Instant::now();
         let elapsed = now.duration_since(self.last_update).as_secs();
-        let tokens_to_add = (elapsed as u8) * self.fill_rate;
+        let tokens_to_add = (elapsed as u8).saturating_mul(self.fill_rate);
         // Check if we have at least one token to add
         // to prevent fractional token tracking
         if tokens_to_add >= 1 {
             self.available_tokens = (self.available_tokens + tokens_to_add).min(self.capacity);
             self.last_update = now;
+        }
+        if self.available_tokens >= self.take_rate {
+            self.available_tokens -= self.take_rate;
+            true
+        } else {
+            false
         }
     }
 }
