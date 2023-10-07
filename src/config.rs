@@ -24,6 +24,7 @@ impl Default for Config {
             auth0_client_secret: String::new(),
             rate_limit_capacity: 100,
             rate_limit_fill_rate: 1,
+            rate_limit_take_rate: 1,
         }
     }
 }
@@ -69,4 +70,7 @@ pub struct Config {
 
     // Rate limit bucket fill rate per second
     pub rate_limit_fill_rate: u8,
+
+    // Rate limit bucket take rate per request
+    pub rate_limit_take_rate: u8,
 }

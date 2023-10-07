@@ -3,6 +3,7 @@
 
 use crate::auth0::Client;
 use crate::config::Config;
+use crate::token_bucket::TokenBucket;
 use ::stripe::Client as StripeClient;
 use ::stripe::RequestStrategy::ExponentialBackoff;
 use anyhow::Result;
@@ -19,8 +20,6 @@ use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetReques
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info};
-
-use self::ratelimit::TokenBucket;
 
 mod accounts;
 mod auth;

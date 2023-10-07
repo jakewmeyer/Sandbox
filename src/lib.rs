@@ -12,3 +12,6 @@ pub mod auth0;
 
 /// Export error type
 pub mod error;
+
+/// Export token bucket
+pub mod token_bucket;
