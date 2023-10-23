@@ -11,7 +11,7 @@ chrono = { version = "0.4.31", features = ["serde"] }
 dashmap = "5.5.3"
 dotenvy = "0.15.7"
 figment = { version = "0.10.11", features = ["env"] }
-jsonwebtoken = { version = "8.3.0", default-features = false }
+jsonwebtoken = { version = "9.1.0", default-features = false }
 owasp-headers = "0.1.2"
 reqwest = { version = "0.11.22", default-features = false, features = ["rustls-tls", "trust-dns"] }
 sea-orm = { version = "0.12.3", features = [ "sqlx-postgres", "runtime-tokio-rustls", "macros", "with-json", "with-chrono", "with-uuid" ] }
