@@ -11,18 +11,18 @@ chrono = { version = "0.4.31", features = ["serde"] }
 dashmap = "5.5.3"
 dotenvy = "0.15.7"
 figment = { version = "0.10.11", features = ["env"] }
-jsonwebtoken = { version = "8.3.0", default-features = false }
+jsonwebtoken = { version = "9.1.0", default-features = false }
 owasp-headers = "0.1.2"
 reqwest = { version = "0.11.22", default-features = false, features = ["rustls-tls", "trust-dns"] }
-sea-orm = { version = "0.12.3", features = [ "sqlx-postgres", "runtime-tokio-rustls", "macros", "with-json", "with-chrono", "with-uuid" ] }
-serde = { version = "1.0.188", features = ["derive"] }
+sea-orm = { version = "0.12.4", features = [ "sqlx-postgres", "runtime-tokio-rustls", "macros", "with-json", "with-chrono", "with-uuid" ] }
+serde = { version = "1.0.189", features = ["derive"] }
 serde_json = "1.0.107"
-serde_with = "3.3.0"
-thiserror = "1.0.49"
-tokio = { version = "1.32.0", features = ["full"] }
+serde_with = "3.4.0"
+thiserror = "1.0.50"
+tokio = { version = "1.33.0", features = ["full"] }
 tower = "0.4.13"
 tower-default-headers = "0.1.1"
 tower-http = { version = "0.4.4", features = ["trace", "cors", "compression-full", "request-id", "timeout"] }
-tracing = "0.1.37"
+tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
-uuid = { version = "1.4.1", features = ["serde", "v7"] }
+uuid = { version = "1.5.0", features = ["serde", "v7"] }

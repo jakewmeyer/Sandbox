@@ -59,7 +59,7 @@ impl Client {
                 AlgorithmParameters::RSA(ref rsa) => {
                     let decoding_key = DecodingKey::from_rsa_components(&rsa.n, &rsa.e)
                         .map_err(|_| Error::Auth0)?;
-                    let validation = Validation::new(j.common.algorithm.ok_or(Error::Auth0)?);
+                    let validation = Validation::default();
                     let decoded_token = decode::<AuthClaims>(token, &decoding_key, &validation)
                         .map_err(|_| Error::Auth0)?;
                     Ok(decoded_token)
