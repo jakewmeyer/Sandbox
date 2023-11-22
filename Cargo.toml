@@ -22,7 +22,7 @@ thiserror = "1.0.50"
 tokio = { version = "1.34.0", features = ["full"] }
 tower = "0.4.13"
 tower-default-headers = "0.1.1"
-tower-http = { version = "0.4.4", features = ["trace", "cors", "compression-full", "request-id", "timeout"] }
+tower-http = { version = "0.5.0", features = ["trace", "cors", "compression-full", "request-id", "timeout"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 uuid = { version = "1.6.1", features = ["serde", "v7"] }
