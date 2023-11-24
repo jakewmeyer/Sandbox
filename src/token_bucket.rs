@@ -52,6 +52,8 @@ impl TokenBucket {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::*;
 
     #[test]
@@ -68,5 +70,32 @@ mod tests {
         std::thread::sleep(std::time::Duration::from_secs(1));
         assert!(bucket.take());
         assert!(!bucket.take());
+    }
+
+    #[test]
+    fn test_token_bucket_fill_rate_overflow() {
+        let mut bucket = TokenBucket::new(255, 255, 1);
+        std::thread::sleep(std::time::Duration::from_secs(1));
+        assert!(bucket.take());
+        assert_eq!(bucket.available_tokens, 254);
+    }
+
+    #[test]
+    fn test_token_bucket_overflow() {
+        const PAST: u64 = 1_000_000_000;
+        let mut bucket = TokenBucket::new(255, 255, 1);
+        // Check that we can't overflow tokens_to_add
+        bucket.last_update = Instant::now() - Duration::from_secs(PAST);
+        assert!(bucket.take());
+    }
+
+    #[test]
+    fn test_token_bucket_underflow() {
+        const FUTURE: u64 = 1_000_000_000;
+        let mut bucket = TokenBucket::new(255, 1, 1);
+        // Check that we can't underflow tokens_to_add
+        bucket.last_update = Instant::now() + Duration::from_secs(FUTURE);
+        assert!(bucket.take());
+        assert_eq!(bucket.available_tokens, 254);
     }
 }
