@@ -13,7 +13,6 @@ use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
 use tokio::{select, signal};
-use tower_default_headers::DefaultHeadersLayer;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
@@ -115,13 +114,11 @@ pub async fn serve(config: Config) -> Result<()> {
         .layer(CorsLayer::new())
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-        .layer(DefaultHeadersLayer::new(owasp_headers::headers()))
         .with_state(state.clone());
 
     info!("Listening on {}", addr);
-    axum::Server::try_bind(&addr)?
-        .http1_header_read_timeout(config.request_timeout)
-        .serve(app.into_make_service())
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
+    axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal(state.clone()))
         .await?;
     Ok(())

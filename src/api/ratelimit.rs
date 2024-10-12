@@ -3,7 +3,11 @@ use std::{
     sync::Arc,
 };
 
-use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
+use axum::{
+    extract::{Request, State},
+    middleware::Next,
+    response::IntoResponse,
+};
 
 use crate::{error::Error, token_bucket::TokenBucket};
 
@@ -12,10 +16,10 @@ use super::ApiContext;
 const IP_HEADER: &str = "X-Real-IP";
 const DEFAULT_IP: IpAddr = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
 
-pub async fn limiter<B>(
+pub async fn limiter(
     State(ctx): State<Arc<ApiContext>>,
-    req: Request<B>,
-    next: Next<B>,
+    req: Request,
+    next: Next,
 ) -> Result<impl IntoResponse, Error> {
     let ip = req
         .headers()
