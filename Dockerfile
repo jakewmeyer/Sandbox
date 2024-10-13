@@ -1,4 +1,4 @@
-FROM rust:1.81.0-alpine AS base
+FROM rust:1.81.0-alpine AS builder
 RUN apk add musl-dev musl-utils
 RUN cargo build --target x86_64-unknown-linux-musl --release --bin sandbox-api
 
