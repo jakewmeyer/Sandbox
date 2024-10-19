@@ -15,9 +15,9 @@ A repo for testing different approaches to Rust web service development with a f
 
 Migrations require [SQLx CLI](https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md)
 
-## URL
+## Base URL
 
-TBD
+[https://sandbox.jakemeyer.sh](https://sandbox.jakemeyer.sh)
 
 ## Authentication
 

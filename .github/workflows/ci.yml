@@ -43,9 +43,9 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.PACKAGES_ACCESS_TOKEN }}
     - name: Build and push
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         push: true
         tags: ghcr.io/jakewmeyer/sandbox:latest
-        cache-from: type=registry,ref=ghcr.io/jakewmeyer/sandbox:latest
-        cache-to: type=inline
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
